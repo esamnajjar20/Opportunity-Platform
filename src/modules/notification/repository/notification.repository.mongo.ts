@@ -8,7 +8,7 @@ import { NotificationEntity } from '../../../shared/types';
 export class MongoNotificationRepository implements INotificationRepository {
   async create(data: CreateNotificationData): Promise<NotificationEntity> {
     const doc = await NotificationModel.create(data);
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async findByUser(

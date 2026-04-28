@@ -48,7 +48,7 @@ export class MongoApplicationRepository implements IApplicationRepository {
       }
       throw err;
     }
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async updateStatus(
@@ -68,7 +68,7 @@ export class MongoApplicationRepository implements IApplicationRepository {
     });
 
     await doc.save();
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async findByApplicant(

@@ -34,7 +34,7 @@ export class MongoUserRepository implements IUserRepository {
       password: data.password,
       role: data.role ?? 'user',
     });
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async update(id: string, data: UpdateUserData): Promise<UserEntity | null> {

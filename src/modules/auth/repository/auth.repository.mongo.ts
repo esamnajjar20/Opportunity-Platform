@@ -12,7 +12,7 @@ export class MongoAuthRepository implements IAuthRepository {
       userId: data.userId,
       expiresAt: data.expiresAt,
     });
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async findRefreshToken(tokenHash: string): Promise<RefreshTokenEntity | null> {

@@ -23,30 +23,30 @@ export class MongoOpportunityRepository implements IOpportunityRepository {
     const { filter, sort, useTextSearch, page, limit } = params;
     const { skip } = parsePagination({ page, limit });
 
-    let query = OpportunityModel.find(filter as Parameters<typeof OpportunityModel.find>[0]);
+    let query = OpportunityModel.find((filter ?? {}) as any);
     if (useTextSearch) {
-      query = query.select({ score: { $meta: 'textScore' } });
+      query = (query.select({ score: { $meta: 'textScore' } } as any) as any);
     }
 
     const [docs, total] = await Promise.all([
       query
-        .sort(sort as Parameters<typeof query.sort>[0])
+        .sort((sort ?? {}) as any)
         .skip(skip)
         .limit(limit)
         .populate('createdBy', 'name')
         .lean(),
-      OpportunityModel.countDocuments(filter as Parameters<typeof OpportunityModel.countDocuments>[0]),
+      OpportunityModel.countDocuments((filter ?? {}) as any),
     ]);
 
     return {
-      data: docs.map((d) => this._toEntity(d)),
+      data: docs.map((d) => this._toEntity((d as unknown) as Record<string, unknown>)),
       pagination: buildPaginationResult(page, limit, total),
     };
   }
 
   async create(data: CreateOpportunityData): Promise<OpportunityEntity> {
     const doc = await OpportunityModel.create(data);
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async update(id: string, data: UpdateOpportunityData): Promise<OpportunityEntity | null> {
@@ -54,7 +54,7 @@ export class MongoOpportunityRepository implements IOpportunityRepository {
     if (!doc) return null;
     Object.assign(doc, data);
     await doc.save();
-    return this._toEntity(doc.toObject());
+    return this._toEntity((doc.toObject() as unknown) as Record<string, unknown>);
   }
 
   async delete(id: string): Promise<boolean> {
@@ -126,10 +126,10 @@ export class MongoOpportunityRepository implements IOpportunityRepository {
       requirements: (doc.requirements as string[]) ?? [],
       salary: doc.salary as OpportunityEntity['salary'],
       deadline: doc.deadline as Date | undefined,
-      // createdBy may be a populated object or a plain id string
+      // createdBy may be a populated object with _id and name, or a plain id string
       createdBy:
-        doc.createdBy && typeof doc.createdBy === 'object' && 'name' in (doc.createdBy as object)
-          ? (doc.createdBy as { _id: unknown; name: string })
+        doc.createdBy && typeof doc.createdBy === 'object' && '_id' in (doc.createdBy as object)
+          ? String((doc.createdBy as { _id: unknown; name?: string })._id)
           : String(doc.createdBy),
       applicantsCount: (doc.applicantsCount as number) ?? 0,
       createdAt: doc.createdAt as Date,
